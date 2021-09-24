@@ -1,0 +1,6 @@
+pyyaml
+pyfiglet
+requests
+gitpython
+paramiko
+tendo

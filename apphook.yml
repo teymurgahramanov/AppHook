@@ -1,0 +1,16 @@
+syslog:
+  host: syslogsrv
+  port: 1514
+  
+ssh:
+  user: hooko
+  priv_key: ./ssh/hooko.key
+
+approll:
+  url: https://github.com/teymurgahramanov/AppRoll.git
+  dir: "./AppRoll"
+  vars_dir: "./AppRoll/approll/vars/main"
+  vars_file: "./AppRoll/approll/vars/main/vars.yml"
+
+structure:
+  app_log_dir: /Log/
