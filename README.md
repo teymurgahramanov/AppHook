@@ -7,7 +7,7 @@ Tool for managing Java application instances which deployed using AppRoll.
 ## Requirements:
 * User with key authentication and restricted sudo privileges (Currently: /bin/systemctl,/bin/tail) on application servers.
 * Access to [AppRoll](https://github.com/teymurgahramanov/AppRoll) repository
-* User which will use AppHook must have rw privileges on directory, to be able to clone AppRoll repository.
+* User which will use AppHook must have rw privileges, to be able to clone AppRoll repository.
 * Your ```vars.yml``` in AppRoll must have correct structure and actual data
  
 ## How to use
