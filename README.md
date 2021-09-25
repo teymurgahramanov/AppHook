@@ -4,6 +4,14 @@ Tool for managing Java application instances which deployed using AppRoll.
 * Developed and tested with:
     - Python 3.6
 
+## Current Features:
+* Choose multiple Applications, Environments and Sites at once
+* Manage systemd service (start,stop,restart,is-active)
+* Healthcheck via HTTP
+* Get current version of Application
+* Logging to Syslog
+* Prevent multiple instance run at same time
+
 ## Requirements:
 * User with key authentication and restricted sudo privileges (Currently: /bin/systemctl,/bin/tail) on application servers.
 * Access to [AppRoll](https://github.com/teymurgahramanov/AppRoll) repository
