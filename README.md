@@ -12,7 +12,7 @@ Tool for managing Java application instances which deployed using AppRoll.
  
 ## How to use
 1. Create virtual environment and install required modules
-2. Place user key in to ./ssh
+2. Place user key in ./ssh
 3. Configure ./apphook.yml
 4. (Recommended) Set alias: \
 ```alias apphook="clear; /path/apphook/.venv/bin/python /path/apphook/apphook.py"```
