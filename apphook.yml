@@ -10,7 +10,7 @@ approll:
   url: https://github.com/teymurgahramanov/AppRoll.git
   dir: "./AppRoll"
   vars_dir: "./AppRoll/approll/vars/main"
-  vars_file: "./AppRoll/approll/vars/main/vars.yml"
+  apphook_file: "./AppRoll/approll/vars/main/apphook.yml"
 
 structure:
   app_log_dir: /Log/

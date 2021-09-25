@@ -16,4 +16,6 @@ Tool for managing Java application instances which deployed using AppRoll.
 3. Configure ./apphook.yml
 4. (Recommended) Set alias: \
 ```alias apphook="clear; /path/apphook/.venv/bin/python /path/apphook/apphook.py"```
-5. Start and follow instructions ```¯\_(ツ)_/¯```
+5. Start and follow instructions ```¯\_(ツ)_/¯``` (May take some time until clone AppRoll)
+
+![Alt Text](./.static/apphook.gif)

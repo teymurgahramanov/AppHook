@@ -19,15 +19,24 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 apphook_version = '0.0.1'
-apphook_properties = yaml.load(open("./apphook.yml",'r'), Loader=yaml.FullLoader)
-approll_dir = apphook_properties['approll']['dir']
-vars_dir = apphook_properties['approll']['vars_dir']
-vars_file = apphook_properties['approll']['vars_file']
-ssh_user = apphook_properties['ssh']['user']
-ssh_key = apphook_properties['ssh']['priv_key']
-syslog_host = apphook_properties['syslog']['host']
-syslog_port = apphook_properties['syslog']['port']
-app_log_dir = apphook_properties['structure']['app_log_dir']
+apphook_data = yaml.load(open("./apphook.yml",'r'), Loader=yaml.FullLoader)
+approll_url = apphook_data['approll']['url']
+approll_dir = apphook_data['approll']['dir']
+vars_dir = apphook_data['approll']['vars_dir']
+apphook_file = apphook_data['approll']['apphook_file']
+ssh_user = apphook_data['ssh']['user']
+ssh_key = apphook_data['ssh']['priv_key']
+syslog_host = apphook_data['syslog']['host']
+syslog_port = apphook_data['syslog']['port']
+app_log_dir = apphook_data['structure']['app_log_dir']
+
+if os.path.exists(approll_dir) and os.path.isdir(approll_dir):
+    g = git.cmd.Git(approll_dir)
+    g.pull()
+else:
+    git.Git().clone(approll_url,approll_dir)
+
+approll_data = yaml.load(open(apphook_file,'r'), Loader=yaml.FullLoader)
 
 class colors:
     HEADER = '\033[95m'
@@ -74,30 +83,21 @@ def get_hostip():
 
 def start():
     banner = pyfiglet.figlet_format("AppHook")
-    approll_url = apphook_properties['approll']['url']
-    approll_dir = apphook_properties['approll']['dir']
     print(colors.OKBLUE + colors.BOLD + banner + apphook_version + colors.ENDC)
-    if os.path.exists(approll_dir) and os.path.isdir(approll_dir):
-        g = git.cmd.Git(approll_dir)
-        g.pull()
-    else:
-        git.Git().clone(approll_url,approll_dir)
 
 def load_vars():
-    vars_load = yaml.load(open(vars_file,'r'), Loader=yaml.FullLoader)
+    vars_load = yaml.load(open(apphook_file,'r'), Loader=yaml.FullLoader)
     return vars_load
-
-vars_data = load_vars()
 
 def menu(menu,list):
     while True:
-        print_header ("Choose" + ' ' + menu + ':')
-        for index, value in enumerate(vars_data.get(list)):
+        print_header ("Choose" + ' ' + menu + '(s)' + ':')
+        for index, value in enumerate(approll_data.get(list)):
             print(index, value)
         inputvar = input(colors.OKBLUE + colors.BOLD + "Number: " + colors.ENDC).split(',')
         try:
             checkinput = [int(i.strip()) for i in inputvar]                    
-            checkindex = [vars_data[list][int(i)] for i in inputvar]
+            checkindex = [approll_data[list][int(i)] for i in inputvar]
             checkduplicate = any(inputvar.count(i) > 1 for i in inputvar)
             if checkduplicate == True:
                 raise Exception
@@ -185,7 +185,7 @@ def main():
         for i in env_index:
             for m in loc_index:
                 for a in act_index:
-                    print(colors.HEADER,vars_data['apps'][int(t)],vars_data['envs'][int(i)],vars_data['locs'][int(m)],colors.WARNING,vars_data['acts'][int(a)],colors.ENDC)
+                    print(colors.HEADER,approll_data['apps'][int(t)],approll_data['envs'][int(i)],approll_data['locs'][int(m)],colors.WARNING,approll_data['acts'][int(a)],colors.ENDC)
     approve()
     
     for t in app_index:
@@ -193,10 +193,10 @@ def main():
             for m in loc_index:
                 for a in act_index:
 
-                    app_name = vars_data['apps'][int(t)]
-                    app_env = vars_data['envs'][int(i)]
-                    app_loc = vars_data['locs'][int(m)]
-                    act_name = vars_data['acts'][int(a)]
+                    app_name = approll_data['apps'][int(t)]
+                    app_env = approll_data['envs'][int(i)]
+                    app_loc = approll_data['locs'][int(m)]
+                    act_name = approll_data['acts'][int(a)]
 
                     print("")
                     print(colors.HEADER,app_name,app_env,app_loc,colors.WARNING,act_name,colors.ENDC)
@@ -225,7 +225,7 @@ def main():
                                 str(app_manifest_data[app_name]['healthcheck']['response'])
                             )
                         elif act_name in ['start' ,'stop','restart','is-active']:
-                            app_state = str(vars_data['acts'][int(a)])
+                            app_state = str(approll_data['acts'][int(a)])
                             ssh_command = "sudo systemctl" + " " + app_state + " " + app_name
                             chstate(ssh_host,ssh_port,ssh_user,ssh_key,str(ssh_command))
                         elif act_name == 'get-version':
