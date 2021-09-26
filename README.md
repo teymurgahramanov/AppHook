@@ -1,9 +1,6 @@
 # AppHook
 Tool for managing Java application instances which deployed using AppRoll.
 
-* Developed and tested with:
-    - Python 3.6
-
 ## Features:
 * Choose multiple Applications, Environments and Sites at once
 * Manage systemd service (start,stop,restart,is-active)
@@ -27,3 +24,6 @@ Tool for managing Java application instances which deployed using AppRoll.
 5. Start and follow instructions ```¯\_(ツ)_/¯``` (May take some time until clone AppRoll)
 
 ![Alt Text](./.static/apphook.gif)
+
+* Developed and tested with:
+    - Python 3.6
