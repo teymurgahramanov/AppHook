@@ -4,7 +4,7 @@ Tool for managing Java application instances which deployed using AppRoll.
 * Developed and tested with:
     - Python 3.6
 
-## Current Features:
+## Features:
 * Choose multiple Applications, Environments and Sites at once
 * Manage systemd service (start,stop,restart,is-active)
 * Healthcheck via HTTP
