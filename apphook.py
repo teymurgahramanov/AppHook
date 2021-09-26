@@ -135,13 +135,13 @@ def healthcheck(host,port,endpoint,method,response):
         try: 
             request=requests.get(url,timeout=5)
             if str(request.status_code) == response:
-                print(url + colors.OKGREEN + ' OK ' + str(request.status_code) + colors.ENDC)
+                print(url,colors.OKGREEN,str(request.status_code),'OK',colors.ENDC)
             else:
-                print(url + colors.WARNING + ' WARNING ' + str(request.status_code) + ' EXPECTED ' + response + colors.ENDC)
+                print(url,colors.WARNING,str(request.status_code),'WARNING',response,'EXPECTED',colors.ENDC)
         except:
-            print(url + colors.FAIL + ' FAIL ' + colors.ENDC)
+            print(url,colors.FAIL,'FAIL',colors.ENDC)
     else:
-        print(colors.WARNING + 'Method not provided' + colors.ENDC)
+        print(colors.WARNING,'Method not provided',colors.ENDC)
 
 def chstate(ssh_host,ssh_port,ssh_user,ssh_key,ssh_command):
     ssh = paramiko.SSHClient()
