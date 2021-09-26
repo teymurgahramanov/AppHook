@@ -27,3 +27,7 @@ Tool for managing Java application instances which deployed using AppRoll.
 
 * Developed and tested with:
     - Python 3.6
+
+___
+https://t.me/teymurgahramanov\
+https://t.me/ITBlogbyTeymur
