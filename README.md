@@ -2,7 +2,7 @@
 Tool for managing Java application instances which deployed using AppRoll.
 
 ## Features:
-* Choose multiple Applications, Environments and Sites at once
+* Choose multiple or all Applications, Environments and Sites at once
 * Manage systemd service (start,stop,restart,is-active)
 * Healthcheck via HTTP
 * Get current version of Application
