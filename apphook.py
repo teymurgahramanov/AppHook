@@ -10,10 +10,7 @@ import socket
 import urllib3
 from tendo import singleton
 
-try:
-    instance = singleton.SingleInstance()
-except:
-    sys.exit(1)
+instance = singleton.SingleInstance()
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
@@ -40,9 +37,8 @@ approll_data = yaml.load(open(apphook_file,'r'), Loader=yaml.FullLoader)
 
 class colors:
     HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKCYAN = '\033[96m'
-    OKGREEN = '\033[92m'
+    INPUT = '\033[94m'
+    OK = '\033[92m'
     WARNING = '\033[93m'
     FAIL = '\033[91m'
     BOLD = '\033[1m'
@@ -51,11 +47,11 @@ class colors:
 
 def sigint_handler(signal, frame):
     print("")
-    print (colors.OKGREEN,'Ok, Bye!',colors.ENDC)
+    print (colors.OK,'Ok, Bye!',colors.ENDC)
     sys.exit(0)
     
 def print_ok():
-    print(colors.OKGREEN + "OK" + colors.ENDC)
+    print(colors.OK + "OK" + colors.ENDC)
 
 def print_fail():
     print(colors.FAIL + "FAIL" + colors.ENDC)
@@ -83,7 +79,7 @@ def get_hostip():
 
 def start():
     banner = pyfiglet.figlet_format("AppHook")
-    print(colors.OKBLUE + colors.BOLD + banner + apphook_version + colors.ENDC)
+    print(colors.INPUT + colors.BOLD + banner + apphook_version + colors.ENDC)
 
 def load_vars():
     vars_load = yaml.load(open(apphook_file,'r'), Loader=yaml.FullLoader)
@@ -94,17 +90,23 @@ def menu(menu,list):
         print_header ("Choose" + ' ' + menu + '(s)' + ':')
         for index, value in enumerate(approll_data.get(list)):
             print(index, value)
-        inputvar = input(colors.OKBLUE + colors.BOLD + "Number: " + colors.ENDC).split(',')
-        try:
-            checkinput = [int(i.strip()) for i in inputvar]                    
-            checkindex = [approll_data[list][int(i)] for i in inputvar]
-            checkduplicate = any(inputvar.count(i) > 1 for i in inputvar)
-            if checkduplicate == True:
-                raise Exception
-        except:
-            print_fail()
-            print_error("Incorrect or Duplicated index. If multiple, separate with comma.")
-            continue
+        inputvar = input(colors.INPUT + colors.BOLD + "Number: " + colors.ENDC).split(',')
+        if inputvar == ['220595']:
+            inputvar = [index for index, value in enumerate(approll_data.get(list))]
+            print(colors.WARNING,'All selected',colors.ENDC)
+            print_ok()
+            break
+        else:
+            try:
+                checkinput = [int(i.strip()) for i in inputvar]                    
+                checkindex = [approll_data[list][int(i)] for i in inputvar]
+                checkduplicate = any(inputvar.count(i) > 1 for i in inputvar)
+                if checkduplicate == True:
+                    raise Exception
+            except:
+                print_fail()
+                print_error("Incorrect or Duplicated index. If multiple, separate with comma.")
+                continue
         print_ok()
         break
     return inputvar
@@ -119,7 +121,7 @@ def log(message):
 
 def approve():
     while True:
-        answer = input(colors.OKBLUE + colors.BOLD + "OK? (Y/N): " + colors.ENDC)
+        answer = input(colors.INPUT + colors.BOLD + "OK? (Y/N): " + colors.ENDC)
         if answer == 'Y':
             return answer
             break
@@ -135,7 +137,7 @@ def healthcheck(host,port,endpoint,method,response):
         try: 
             request=requests.get(url,timeout=5)
             if str(request.status_code) == response:
-                print(url,colors.OKGREEN,str(request.status_code),'OK',colors.ENDC)
+                print(url,colors.OK,str(request.status_code),'OK',colors.ENDC)
             else:
                 print(url,colors.WARNING,str(request.status_code),'WARNING',response,'EXPECTED',colors.ENDC)
         except:
@@ -185,7 +187,7 @@ def main():
         for i in env_index:
             for m in loc_index:
                 for a in act_index:
-                    print(colors.HEADER,approll_data['apps'][int(t)],approll_data['envs'][int(i)],approll_data['locs'][int(m)],colors.WARNING,approll_data['acts'][int(a)],colors.ENDC)
+                    print(approll_data['apps'][int(t)],colors.WARNING,approll_data['envs'][int(i)],colors.ENDC,approll_data['locs'][int(m)],colors.WARNING,approll_data['acts'][int(a)],colors.ENDC)
     approve()
     
     for t in app_index:
