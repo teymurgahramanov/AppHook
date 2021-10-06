@@ -15,7 +15,7 @@ instance = singleton.SingleInstance()
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-apphook_version = '0.0.1'
+apphook_version = '0.0.4'
 apphook_data = yaml.load(open("./apphook.yml",'r'), Loader=yaml.FullLoader)
 approll_url = apphook_data['approll']['url']
 approll_dir = apphook_data['approll']['dir']
@@ -173,7 +173,7 @@ def version(ssh_host,ssh_port,ssh_user,ssh_key,ssh_command,app_name):
 def main():
     
     start()
-    username = get_username()
+    username = os.getenv('HOST_USER', get_username())
     hostip = get_hostip()
 
     app_index = menu("application","apps")
