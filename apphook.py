@@ -173,8 +173,8 @@ def version(ssh_host,ssh_port,ssh_user,ssh_key,ssh_command,app_name):
 def main():
     
     start()
-    username = os.getenv('HOST_USER', get_username())
-    hostip = get_hostip()
+    username = os.getenv('APPHOOK_USER', get_username())
+    hostip = os.getenv('APPHOOK_USER_IP', get_hostip())
 
     app_index = menu("application","apps")
     env_index = menu("environment","envs")
