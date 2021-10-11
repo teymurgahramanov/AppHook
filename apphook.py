@@ -16,7 +16,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 inputTimeoutSec = 10
-apphookVersion = '1.0.8'
+apphookVersion = '1.0.9'
 apphookData = yaml.load(open("./apphook.yml",'r'), Loader=yaml.FullLoader)
 approllUrl = apphookData['approll']['url']
 approllDir = apphookData['approll']['dir']
@@ -46,6 +46,19 @@ class colors:
     UNDERLINE = '\033[4m'
     ENDC = '\033[0m'
 
+def printOk():
+    print(colors.OK,"OK",colors.ENDC)
+
+def printFail(message=None):
+    if message is None:
+        print(colors.FAIL,"FAIL",colors.ENDC)
+    else:
+        print(colors.FAIL,"FAIL:",message,colors.ENDC)
+
+def printHeader(message):
+    print("")
+    print(colors.HEADER + colors.BOLD + message + colors.ENDC)
+
 def sigintHandler(signal, frame):
     print("")
     print (colors.OK,'Ok, Bye!',colors.ENDC)
@@ -53,24 +66,8 @@ def sigintHandler(signal, frame):
 
 def timeoutExceed():
     print("")
-    print(colors.FAIL,'Timeout exceeded',colors.ENDC)
+    printFail("Timeout exceeded")
     os.kill(os.getpid(), signal.SIGINT)
-    
-def printOk():
-    print(colors.OK + "OK" + colors.ENDC)
-
-def printFail():
-    print(colors.FAIL + "FAIL" + colors.ENDC)
-
-def printError(message):
-    print("")
-    print(colors.FAIL + message + colors.ENDC)
-    print(colors.FAIL + "Try again or go home (Ctrl+C)" + colors.ENDC)
-    print("")
-    
-def printHeader(message):
-    print("")
-    print(colors.HEADER + colors.BOLD + message + colors.ENDC)
 
 def getUsername():
     userhome = os.path.expanduser('~')          
@@ -122,8 +119,7 @@ def menu(menu,list):
                     raise Exception
             except:
                 tickTick.cancel()
-                printFail()
-                printError("Incorrect or Duplicated index. If multiple, separate with comma.")
+                printFail("Incorrect or duplicated index. Try again or go home (Ctrl+C)")
                 continue
         printOk()
         break
@@ -135,7 +131,7 @@ def log(message):
         s.connect((syslogHost, syslogPort))
         s.sendall(message.encode('utf-8'))
     except:
-        print(colors.FAIL,"Can't send message to Syslog",colors.ENDC)
+        printFail("Can't send message to Syslog")
 
 def approve():
     while True:
@@ -151,7 +147,7 @@ def approve():
             sys.exit(0)
         else:
             tickTick.cancel()
-            print(colors.FAIL,"Only Y or N",colors.ENDC)
+            printFail("Only Y or N")
             continue
 
 def healthcheck(host,port,endpoint,method,response):
@@ -164,30 +160,30 @@ def healthcheck(host,port,endpoint,method,response):
             else:
                 print(url,colors.WARNING,str(request.status_code),'WARNING',response,'EXPECTED',colors.ENDC)
         except:
-            print(url,colors.FAIL,'FAIL',colors.ENDC)
+            print(url,printFail())
     else:
-        print(colors.WARNING,'Method not provided',colors.ENDC)
+        printFail("Method is not provided")
 
-def chstate(sshHost,sshPort,sshUser,sshKey,sshCommand):
+def changeState(sshHost,sshPort,sshUser,sshKey,sshCommand,act_name):
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     k = paramiko.RSAKey.from_private_key_file(sshKey)
-    ssh.connect(sshHost,port=sshPort,username=sshUser,pkey=k)
+    ssh.connect(sshHost,port=sshPort,username=sshUser,pkey=k,timeout=10)
     chan = ssh.get_transport().open_session()
     chan.exec_command(sshCommand)
     if chan.recv_exit_status() == 0:
-        print(sshCommand,chan.recv_exit_status(),end = ' ')
+        print(act_name,end = ' ')
         printOk()
     else:
-        print(sshCommand,chan.recv_exit_status(),end = ' ')
+        print(act_name,end = ' ')
         printFail()
     ssh.close()
 
-def version(sshHost,sshPort,sshUser,sshKey,sshCommand,appName):
+def getVersion(sshHost,sshPort,sshUser,sshKey,sshCommand,appName):
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     k = paramiko.RSAKey.from_private_key_file(sshKey)
-    ssh.connect(sshHost,port=sshPort,username=sshUser,pkey=k)
+    ssh.connect(sshHost,port=sshPort,username=sshUser,pkey=k,timeout=10)
     stdin, stdout, stderr = ssh.exec_command(sshCommand)
     for line in iter(stdout.readline, ""):
         print(appName,line, end="")
@@ -210,7 +206,7 @@ def main():
         for i in env_index:
             for m in loc_index:
                 for a in act_index:
-                    print(approllData['apps'][int(t)],colors.WARNING,approllData['envs'][int(i)],colors.ENDC,approllData['locs'][int(m)],colors.WARNING,approllData['acts'][int(a)],colors.ENDC)
+                    print(colors.HEADER,approllData['apps'][int(t)],colors.WARNING,approllData['envs'][int(i)].title(),colors.ENDC,approllData['locs'][int(m)].title(),colors.WARNING,approllData['acts'][int(a)].title(),colors.ENDC)
     approve()
     
     for t in app_index:
@@ -224,7 +220,7 @@ def main():
                     act_name = approllData['acts'][int(a)]
 
                     print("")
-                    print(colors.HEADER,appName,app_env,app_loc,colors.WARNING,act_name,colors.ENDC)
+                    print(colors.HEADER,appName,colors.WARNING,app_env.title(),colors.ENDC,app_loc.title(),colors.WARNING,act_name.title(),colors.ENDC)
                     log_message ='{"username":"'+str(username)+'","host":"'+str(hostip)+'","app":"'+appName+'","env":"'+app_env+'","loc":"'+app_loc+'","act":"'+act_name+'"}'+ "\n"
                     log(log_message)
                     
@@ -233,7 +229,7 @@ def main():
                     try:
                         app_targets = app_manifest_data[appName]['targets'][app_env][app_loc]
                     except:
-                        print(colors.FAIL,'Location',app_env,app_loc,'for',appName,'is not defined',colors.ENDC)
+                        printFail('Location is not defined')
                         continue
 
                     for target in app_targets:
@@ -252,11 +248,11 @@ def main():
                         elif act_name in ['start' ,'stop','restart','is-active']:
                             app_state = str(approllData['acts'][int(a)])
                             sshCommand = "sudo systemctl" + " " + app_state + " " + appName
-                            chstate(sshHost,sshPort,sshUser,sshKey,str(sshCommand))
+                            changeState(sshHost,sshPort,sshUser,sshKey,str(sshCommand),act_name)
                         elif act_name == 'get-version':
                             log_file = appLogDir + appName + "/" + appName + ".log"
                             sshCommand = "sudo tail -n 1" + " " + log_file + "| cut -d ' ' -f 5"
-                            version(sshHost,sshPort,sshUser,sshKey,str(sshCommand),appName)
+                            getVersion(sshHost,sshPort,sshUser,sshKey,str(sshCommand),appName)
                         else:
                             printFail()
                             sys.exit(1)
