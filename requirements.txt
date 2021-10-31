@@ -4,3 +4,4 @@ requests
 gitpython
 paramiko
 tendo
+ansible-core

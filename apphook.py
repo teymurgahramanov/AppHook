@@ -1,4 +1,5 @@
 import os
+import stat
 import sys
 import yaml
 import pyfiglet
@@ -8,6 +9,7 @@ import paramiko
 import signal
 import socket
 import urllib3
+import getpass
 from tendo import singleton
 from threading import Timer
 
@@ -15,8 +17,8 @@ instance = singleton.SingleInstance()
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-inputTimeoutSec = 10
-apphookVersion = '1.0.9'
+inputTimeoutSec = 15
+apphookVersion = '2.0.0'
 apphookData = yaml.load(open("./apphook.yml",'r'), Loader=yaml.FullLoader)
 approllUrl = apphookData['approll']['url']
 approllDir = apphookData['approll']['dir']
@@ -160,7 +162,7 @@ def healthcheck(host,port,endpoint,method,response):
             else:
                 print(url,colors.WARNING,str(request.status_code),'WARNING',response,'EXPECTED',colors.ENDC)
         except:
-            print(url,printFail())
+            print(url,colors.FAIL,'FAIL: Connection failed',colors.ENDC)
     else:
         printFail("Method is not provided")
 
@@ -188,6 +190,21 @@ def getVersion(sshHost,sshPort,sshUser,sshKey,sshCommand,appName):
     for line in iter(stdout.readline, ""):
         print(appName,line, end="")
     ssh.close()
+
+def depOve (app,env,loc,act):
+    #os.environ["ANSIBLE_DISPLAY_SKIPPED_HOSTS"] = "FALSE"
+    #os.environ["ANSIBLE_DISPLAY_OK_HOSTS"] = "FALSE"
+    os.chmod(sshKey,stat.S_IREAD);
+    if not os.path.exists('./vaultPass.txt'):
+        tickTick = Timer(inputTimeoutSec, timeoutExceed)
+        tickTick.daemon = True
+        tickTick.start()
+        vaultPass = getpass.getpass(prompt=colors.INPUT + colors.BOLD + "Password: " + colors.ENDC)
+        tickTick.cancel()
+        with open("vaultPass.txt", "w") as vaultPassFile:
+            vaultPassFile.write("%s" % vaultPass)
+    cmd = "ansible-playbook %s/approll.yml -i %s/approll.ini --extra-vars \"app_name=%s app_env=%s app_loc=%s\" --tags %s --vault-password-file vaultPass.txt -u %s --private-key %s"%(approllDir,approllDir,app,env,loc,act,sshUser,sshKey)
+    os.system(cmd)
 
 def main():
     
@@ -221,7 +238,7 @@ def main():
 
                     print("")
                     print(colors.HEADER,appName,colors.WARNING,app_env.title(),colors.ENDC,app_loc.title(),colors.WARNING,act_name.title(),colors.ENDC)
-                    log_message ='{"username":"'+str(username)+'","host":"'+str(hostip)+'","app":"'+appName+'","env":"'+app_env+'","loc":"'+app_loc+'","act":"'+act_name+'"}'+ "\n"
+                    log_message ='{"apphook":"'+str(apphookVersion)+'","username":"'+str(username)+'","host":"'+str(hostip)+'","app":"'+appName+'","env":"'+app_env+'","loc":"'+app_loc+'","act":"'+act_name+'"}'+ "\n"
                     log(log_message)
                     
                     app_manifest_file = os.path.join(varsDir,appName + '.yml')
@@ -232,30 +249,38 @@ def main():
                         printFail('Location is not defined')
                         continue
 
-                    for target in app_targets:
-                        print(colors.UNDERLINE,target.split(':')[0],colors.ENDC)
-                        sshHost = target.split(':')[0]
-                        sshPort = target.split(':')[1]
-                        if act_name == 'check':
-                            host = target.split(':')[0]
-                            healthcheck(
-                                host,
-                                str(app_manifest_data[appName]['ports']['http']),
-                                str(app_manifest_data[appName]['healthcheck']['endpoint']),
-                                str(app_manifest_data[appName]['healthcheck']['method']),
-                                str(app_manifest_data[appName]['healthcheck']['response'])
-                            )
-                        elif act_name in ['start' ,'stop','restart','is-active']:
-                            app_state = str(approllData['acts'][int(a)])
-                            sshCommand = "sudo systemctl" + " " + app_state + " " + appName
-                            changeState(sshHost,sshPort,sshUser,sshKey,str(sshCommand),act_name)
-                        elif act_name == 'get-version':
-                            log_file = appLogDir + appName + "/" + appName + ".log"
-                            sshCommand = "sudo tail -n 1" + " " + log_file + "| cut -d ' ' -f 5"
-                            getVersion(sshHost,sshPort,sshUser,sshKey,str(sshCommand),appName)
-                        else:
-                            printFail()
-                            sys.exit(1)
+                    if act_name == 'deploy':
+                        depOve(appName,app_env,app_loc,"deploy")
+                    elif act_name == 'remove':
+                        depOve(appName,app_env,app_loc,"remove")
+                    else:
+                        for target in app_targets:
+                            print(colors.UNDERLINE,target.split(':')[0],colors.ENDC)
+                            sshHost = target.split(':')[0]
+                            sshPort = target.split(':')[1]
+                            if act_name == 'check':
+                                host = target.split(':')[0]
+                                healthcheck(
+                                    host,
+                                    str(app_manifest_data[appName]['ports']['http']),
+                                    str(app_manifest_data[appName]['healthcheck']['endpoint']),
+                                    str(app_manifest_data[appName]['healthcheck']['method']),
+                                    str(app_manifest_data[appName]['healthcheck']['response'])
+                                )
+                            elif act_name in ['start' ,'stop','restart']:
+                                app_state = str(approllData['acts'][int(a)])
+                                sshCommand = "sudo systemctl" + " " + app_state + " " + appName
+                                changeState(sshHost,sshPort,sshUser,sshKey,str(sshCommand),act_name)
+                            elif act_name == 'get-status':
+                                sshCommand = "sudo systemctl is-active" + " " + appName
+                                changeState(sshHost,sshPort,sshUser,sshKey,str(sshCommand),'is-active')
+                            elif act_name == 'get-version':
+                                log_file = appLogDir + appName + "/" + appName + ".log"
+                                sshCommand = "sudo tail -n 1" + " " + log_file + "| cut -d ' ' -f 5"
+                                getVersion(sshHost,sshPort,sshUser,sshKey,str(sshCommand),appName)
+                            else:
+                                printFail()
+                                sys.exit(1)
 
 signal.signal(signal.SIGINT, sigintHandler)
 main()
