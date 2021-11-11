@@ -1,0 +1,15 @@
+syslog:
+  host: syslog
+  port: 1514
+  
+ssh:
+  user: apphook
+  privKey: ./ssh/apphook.key
+
+approll:
+  url: https://github.com/teymurgahramanov/AppRoll.git
+  varsDir: "./AppRoll/approll/vars/main"
+  apphookFile: "./AppRoll/apphook.yml"
+
+structure:
+  appLogDir: /Log/

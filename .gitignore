@@ -1,6 +1,5 @@
 AppRoll
-__pycache__
-ssh/*.key
 .venv
-.vscode
-workspace.code-workspace
+ssh/*.key
+vaultPass
+apphook.yml
