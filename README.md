@@ -1,5 +1,5 @@
 # AppHook
-Tool for managing AppRolled instances.
+Tool for managing [AppRolled](https://github.com/teymurgahramanov/AppRoll) applications
 
 ## Features:
 * Perform actions on multiple or all Applications, Environments and Sites at one time
